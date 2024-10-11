@@ -1,0 +1,4 @@
+ find . -type f -printf '%T@ %p\n' | sort -n -r | awk '{print $2}' | head -20 # grab all files from last changed
+
+
+ challenge files -> https://flare-on11.ctfd.io/files/ff28ab70b8c2474eb4912be47c661e70/sshd.7z?token=eyJ1c2VyX2lkIjozMzM5LCJ0ZWFtX2lkIjpudWxsLCJmaWxlX2lkIjoxMn0.Zwl3fQ.7ei1E2yiSrSXAKWJnUdjMvLdPD0
