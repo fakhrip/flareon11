@@ -1,4 +1,29 @@
- find . -type f -printf '%T@ %p\n' | sort -n -r | awk '{print $2}' | head -20 # grab all files from last changed
+find . -type f -printf '%T@ %p\n' | sort -n -r | awk '{print $2}' | head -20 # grab all files from last changed
 
 
- challenge files -> https://flare-on11.ctfd.io/files/ff28ab70b8c2474eb4912be47c661e70/sshd.7z?token=eyJ1c2VyX2lkIjozMzM5LCJ0ZWFtX2lkIjpudWxsLCJmaWxlX2lkIjoxMn0.Zwl3fQ.7ei1E2yiSrSXAKWJnUdjMvLdPD0
+challenge files -> https://flare-on11.ctfd.io/files/ff28ab70b8c2474eb4912be47c661e70/sshd.7z?token=eyJ1c2VyX2lkIjozMzM5LCJ0ZWFtX2lkIjpudWxsLCJmaWxlX2lkIjoxMn0.Zwl3fQ.7ei1E2yiSrSXAKWJnUdjMvLdPD0
+
+
+1726088159.0000000000 ./root/flag.txt
+1725917676.0000000000 ./var/lib/systemd/coredump/sshd.core.93794.0.0.11.1725917676
+1725917673.0000000000 ./usr/lib/x86_64-linux-gnu/liblzma.so.5.4.1
+1725916919.0000000000 ./var/log/dpkg.log
+1725916919.0000000000 ./var/log/apt/term.log
+1725916919.0000000000 ./var/log/apt/history.log
+1725916919.0000000000 ./var/lib/dpkg/status
+1725916919.0000000000 ./etc/ssl/certs/ca-certificates.crt
+
+so the modified liblzma lib actually has a plthook functions set in the .initarr
+and then this replace plt of rsa_public_decrypt to 0x0000000000009820 in the modified lib
+
+found this by `gdb sshcontainer/usr/sbin/sshd coredumpfiles`
+and then `bt`
+and then grab the address of the 1 stack trace
+and then get the offset by subtracting from base address that we can get from `info proc mapping` ()
+
+int RSA_public_decrypt(int flen, unsigned char *from,
+    unsigned char *to, RSA *rsa, int padding);
+
+fn(0x200, 0x55b46d51dde0, 0x55b46d58eb20, 0x55b46d58e080) // got this from `info registers`
+
+encrypted shellcode is at 0x7f4a18ca9960
