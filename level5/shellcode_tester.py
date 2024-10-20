@@ -1,6 +1,9 @@
 from qiling import Qiling
 from qiling.const import QL_VERBOSE, QL_ARCH, QL_OS
+from unicorn.x86_const import *
+from pprint import pprint
 
+# fmt: off
 shellcode = bytes([
     0x55, 0x48, 0x8B, 0xEC, 0xE8, 0xB9, 0x0D, 0x00, 0x00, 0xC9, 0xC3, 0x57, 0x55, 0x48, 0x8B, 0xEC, 
     0x8B, 0xF8, 0x6A, 0x03, 0x58, 0x0F, 0x05, 0xC9, 0x5F, 0xC3, 0x56, 0x57, 0x55, 0x48, 0x8B, 0xEC, 
@@ -312,6 +315,7 @@ shellcode = bytes([
     0x41, 0x8B, 0xC0, 0xC9, 0xC3, 0x65, 0x78, 0x70, 0x61, 0x6E, 0x64, 0x20, 0x33, 0x32, 0x2D, 0x62, 
     0x79, 0x74, 0x65, 0x20, 0x4B, 0x00, 
 ])
+# fmt: on
 
 # instantiate a Qiling object to emulate the shellcode. when emulating a binary Qiling would be able to automatically
 # infer the target architecture and operating system. this, however, is not possible when emulating a shellcode, therefore
@@ -321,19 +325,57 @@ ql = Qiling(
     rootfs=r"sshcontainer",
     archtype=QL_ARCH.X8664,
     ostype=QL_OS.LINUX,
-    verbose=QL_VERBOSE.DISASM,
+    verbose=QL_VERBOSE.DEFAULT,
 )
 
-# from pprint import pprint
-# pprint(ql.mem.get_formatted_mapinfo())
+pprint(ql.mem.get_formatted_mapinfo())
 
-# ql.arch.stack_write(, value)
+base_addr = ql.mem.get_mapinfo()[1][0] + 0x1FF000  # hardcoded value from runtime
+chacha20_xor_addr = base_addr + shellcode.find(bytes([0xE8, 0x7A, 0xFE, 0xFF, 0xFF]))
+end_addr = base_addr + shellcode.find(
+    bytes([0x33, 0xC0, 0xC9, 0x41, 0x5C, 0x5F, 0x5E, 0x5B, 0xC3])
+)
 
-ql.arch.regs.rdi = stack_address  
-ql.arch.regs.rsi = key_addr  
-ql.arch.regs.rdx = key_addr + 0x20 
-ql.arch.regs.rcx = 0
+chacha_ctx_addr = ql.mem.map_anywhere(
+    0x5000, perms=3
+)  # Arbitrary address for the stack base
 
+key_addr = chacha_ctx_addr + 0x1000
+ql.mem.write(key_addr, b"/root/certificate_authority_signing_key.txt")
+
+nonce_addr = chacha_ctx_addr + 0x2000
+ql.mem.write(nonce_addr, b"ing_key.txt")
+
+ql.arch.regs.rax = chacha_ctx_addr
+ql.arch.regs.rdx = key_addr
+ql.arch.regs.rcx = nonce_addr
 
 # do the magic!
-ql.run()
+ql.emu_start(
+    begin=base_addr, end=chacha20_xor_addr
+)  # call up to chacha20_init function
+chachactx_res = ql.mem.read(chacha_ctx_addr, size=0xC0)
+pprint(chachactx_res)
+pprint(" ".join(f"{byte:02x}" for byte in chachactx_res))
+
+flag = b"flag{test}"
+
+buff_addr = chacha_ctx_addr + 0x3000
+ql.mem.write(buff_addr, flag)
+
+ql.arch.regs.rax = chacha_ctx_addr
+ql.arch.regs.rdx = buff_addr
+ql.arch.regs.ecx = len(flag)
+
+ql.emu_start(
+    begin=chacha20_xor_addr, end=end_addr
+)  # call starting with chacha20_xor function
+print("------ chacha context ---------")
+chachactx_res = ql.mem.read(chacha_ctx_addr, size=0xC0)
+pprint(chachactx_res)
+pprint(" ".join(f"{byte:02x}" for byte in chachactx_res))
+
+print("------ chacha buffer ---------")
+chachabuff_res = ql.mem.read(buff_addr, size=len(flag))
+pprint(chachabuff_res)
+pprint(" ".join(f"{byte:02x}" for byte in chachabuff_res))
