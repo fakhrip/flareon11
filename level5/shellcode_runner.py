@@ -337,14 +337,21 @@ end_addr = base_addr + shellcode.find(
 )
 
 chacha_ctx_addr = ql.mem.map_anywhere(
-    0x5000, perms=3
+    0x10000, perms=3
 )  # Arbitrary address for the stack base
 
 key_addr = chacha_ctx_addr + 0x1000
-ql.mem.write(key_addr, b"/root/certificate_authority_signing_key.txt")
+ql.mem.write(key_addr, b"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")  # test
+# ql.mem.write(key_addr, bytes([
+#     0x94, 0x3D, 0xF6, 0x38, 0xA8, 0x18, 0x13, 0xE2, 0xDE, 0x63, 0x18, 0xA5, 0x07, 0xF9, 0xA0, 0xBA,
+#     0x2D, 0xBB, 0x8A, 0x7B, 0xA6, 0x36, 0x66, 0xD0, 0x8D, 0x11, 0xA6, 0x5E, 0xC9, 0x14, 0xD6, 0x6F,
+# ]))
 
 nonce_addr = chacha_ctx_addr + 0x2000
-ql.mem.write(nonce_addr, b"ing_key.txt")
+ql.mem.write(nonce_addr, b"BBBBBBBBBBBB")  # test
+# ql.mem.write(nonce_addr, bytes([
+#     0xF2, 0x36, 0x83, 0x9F, 0x4D, 0xCD, 0x71, 0x1A, 0x52, 0x86, 0x29, 0x55,
+# ]))
 
 ql.arch.regs.rax = chacha_ctx_addr
 ql.arch.regs.rdx = key_addr
@@ -358,7 +365,11 @@ chachactx_res = ql.mem.read(chacha_ctx_addr, size=0xC0)
 pprint(chachactx_res)
 pprint(" ".join(f"{byte:02x}" for byte in chachactx_res))
 
-flag = b"flag{test}"
+# flag = b"RAHASIA" # test
+flag = b"\x01\xcf\xcc\xc9\x0fD\xaf"
+
+# fmt: off
+# fmt: on
 
 buff_addr = chacha_ctx_addr + 0x3000
 ql.mem.write(buff_addr, flag)
@@ -366,6 +377,7 @@ ql.mem.write(buff_addr, flag)
 ql.arch.regs.rax = chacha_ctx_addr
 ql.arch.regs.rdx = buff_addr
 ql.arch.regs.ecx = len(flag)
+ql.arch.regs.r8d = 0
 
 ql.emu_start(
     begin=chacha20_xor_addr, end=end_addr
@@ -379,3 +391,4 @@ print("------ chacha buffer ---------")
 chachabuff_res = ql.mem.read(buff_addr, size=len(flag))
 pprint(chachabuff_res)
 pprint(" ".join(f"{byte:02x}" for byte in chachabuff_res))
+
