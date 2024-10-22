@@ -1,6 +1,6 @@
 def decode(int_value):
     num_bytes = (int_value.bit_length() + 7) // 8
-    byte_value = int_value.to_bytes(num_bytes, "big")
+    byte_value = int_value.to_bytes(num_bytes, "little")
     print(byte_value)
 
 
