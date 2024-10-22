@@ -100,7 +100,7 @@ module bloke2s_tb;
 	initial begin
 		// Initialize our start and finish lines.
 		start <= 1'b0;
-		finish <= 1'b1;
+		finish <= 1'b0;
 
 		// Kick off the clock, since it needs an event to start.
 		clk <= 1'b1;
