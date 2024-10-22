@@ -75,7 +75,7 @@ module data_mgr #(
 		end else begin
 			// $display("%t dmgr dout oc %h", $time, out_cnt);
 			if (h_rdy) begin
-				$display("%t dmgr dout h %h t %b", $time, h_in, tst);
+				// $display("%t dmgr dout h %h t %b", $time, h_in, tst);
 				out_cnt <= W;
 				h <= h_in ^ (TEST_VAL & {(W*16){tst}});
 			end else if(out_cnt != 0) begin
