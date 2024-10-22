@@ -1,3 +1,6 @@
 [submodule "level5/inject2pe"]
 	path = level5/inject2pe
 	url = https://github.com/0xballistics/inject2pe
+[submodule "level6/iverilog"]
+	path = level6/iverilog
+	url = https://github.com/steveicarus/iverilog
