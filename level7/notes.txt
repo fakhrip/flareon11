@@ -1,0 +1,7 @@
+its a .net AOT stuff so we will need to find a way to decompile it because this is not the same as the usual .net stuff and dnspy wont be able to decompile it right away
+
+and other thing is that we can know about this .net AOT due to the only exported symbol being somethingsomethingruntime lol (check this from PEbear)
+
+we also get a pcap, and i believe this pcap is the encrypted communication that we have to decrypt based on the code from fullspeed.exe
+
+there are bcrypt stuff in the strings, maybe this has something to do with the encryption??
