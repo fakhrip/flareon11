@@ -5,3 +5,13 @@ and other thing is that we can know about this .net AOT due to the only exported
 we also get a pcap, and i believe this pcap is the encrypted communication that we have to decrypt based on the code from fullspeed.exe
 
 there are bcrypt stuff in the strings, maybe this has something to do with the encryption??
+
+
+extracted version from strings -> 8.0.5+087e15321bb712ef6fe8b0ba6f8bd12facf92629
+
+
+
+capa is so usefull in that we know the important function, can visualize here also https://mandiant.github.io/capa/explorer/#/analysis
+
+
+found socket open connections and stuff through x64dbg
