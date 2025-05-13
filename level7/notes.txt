@@ -15,3 +15,4 @@ capa is so usefull in that we know the important function, can visualize here al
 
 
 found socket open connections and stuff through x64dbg
+socket connection setup is on 0x00007FF7C7CAB539, change the ip value to 127.0.0.1, but dont forget to open a server first at 127.0.0.1:31337
